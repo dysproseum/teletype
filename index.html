@@ -1,0 +1,124 @@
+<html>
+<head>
+<style type="text/css">
+body {
+  margin: 0;
+}
+textarea {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 0;
+  font-family: monospace;
+  resize: none;
+  line-break: anywhere;
+}
+#statusbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  overflow: hidden;
+  background: #eeeeee;
+}
+</style>
+<script type="text/javascript" src="ping.js"></script>
+<script type="text/javascript">
+var url = '/hyperterminal/post.php';
+window.onload = function() {
+  var textscreen = document.getElementById("textscreen");
+  var statusbar = document.getElementById("statusbar");
+  var buffer = '';
+  var c = '. ';
+  var size = 8192;
+  for(var i=0; i < size; i++) {
+    buffer += c;
+  }
+  textscreen.value = buffer;
+
+  textscreen.onkeydown = function(e) {
+    console.log(e);
+    // Backspace, Delete, Enter.
+    if (e.keyCode == 8 || e.keyCode == 46 || e.keyCode == 13) {
+      return false;
+    }
+  };
+
+  textscreen.onkeypress = function(e) {
+    var key = String.fromCharCode(e.which || e.charCode || e.keyCode);
+    if (/[A-Za-z0-9 ]/.test(key)) {
+        var text = this.value;
+        var caret = getCaret(this);
+
+        var msg = "Input: " + e.key + " position " + caret + " time " + e.timeStamp;
+        //statusbar.innerText = msg;
+
+        // Send this back to server (ping.js).
+        loadDoc(url + "?letra=" + e.key + "&caret=" + caret + "&stamp=" + e.timeStamp);
+
+        var output = text.substring(0, caret);
+        this.value = output + key + text.substring(caret + 1);
+        setCaretPosition('textscreen', caret + 1);
+        return false;
+    }
+    return false;
+  };
+
+  // @todo setTimeout to check for new data.
+  var timeout;
+  var timeOut = function() {
+    loadDoc(url);
+    timeout = setTimeout(timeOut, 5000);
+  };
+  timeOut();
+
+}
+
+function getCaret(el) { 
+  if (el.selectionStart) { 
+    return el.selectionStart; 
+  } else if (document.selection) { 
+    el.focus(); 
+
+    var r = document.selection.createRange(); 
+    if (r == null) { 
+      return 0; 
+    } 
+
+    var re = el.createTextRange(), 
+        rc = re.duplicate(); 
+    re.moveToBookmark(r.getBookmark()); 
+    rc.setEndPoint('EndToStart', re); 
+
+    return rc.text.length; 
+  }  
+  return 0; 
+}
+
+function setCaretPosition(elemId, caretPos) {
+    var elem = document.getElementById(elemId);
+
+    if(elem != null) {
+        if(elem.createTextRange) {
+            var range = elem.createTextRange();
+            range.move('character', caretPos);
+            range.select();
+        }
+        else {
+            if(elem.selectionStart) {
+                elem.focus();
+                elem.setSelectionRange(caretPos, caretPos + 1);
+            }
+            else
+                elem.focus();
+        }
+    }
+}
+
+</script>
+<body>
+<textarea name="screen" id="textscreen" spellcheck="false">
+</textarea>
+<div id="statusbar">Status</div>
+</body>
