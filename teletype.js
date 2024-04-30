@@ -1,37 +1,11 @@
-<html>
-<head>
-<style type="text/css">
-body {
-  margin: 0;
-}
-textarea {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border: 0;
-  font-family: monospace;
-  resize: none;
-  line-break: anywhere;
-}
-#statusbar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 20px;
-  overflow: hidden;
-  background: #eeeeee;
-}
-</style>
-<script type="text/javascript" src="ping.js"></script>
-<script type="text/javascript">
-var url = '/hyperterminal/post.php';
+var url = '/teletype/post.php';
+var pre_stamp = 0;
 window.onload = function() {
   var textscreen = document.getElementById("textscreen");
   var statusbar = document.getElementById("statusbar");
   var buffer = '';
-  var c = '. ';
-  var size = 8192;
+  var c = '.';
+  var size = 2080;
   for(var i=0; i < size; i++) {
     buffer += c;
   }
@@ -39,8 +13,8 @@ window.onload = function() {
 
   textscreen.onkeydown = function(e) {
     console.log(e);
-    // Backspace, Delete, Enter.
-    if (e.keyCode == 8 || e.keyCode == 46 || e.keyCode == 13) {
+    // Backspace, Delete, Enter, Control.
+    if (e.keyCode == 8 || e.keyCode == 46 || e.keyCode == 13 || e.keyCode == 17) {
       return false;
     }
   };
@@ -52,10 +26,13 @@ window.onload = function() {
         var caret = getCaret(this);
 
         var msg = "Input: " + e.key + " position " + caret + " time " + e.timeStamp;
-        //statusbar.innerText = msg;
+	console.log(msg);
 
         // Send this back to server (ping.js).
-        loadDoc(url + "?letra=" + e.key + "&caret=" + caret + "&stamp=" + e.timeStamp);
+	console.log(e.timeStamp);
+	    console.log(parseInt(e.timeStamp));
+	var stamp = parseInt(pre_stamp) + parseInt(e.timeStamp);
+        loadDoc(url + "?letra=" + e.key + "&caret=" + caret + "&stamp=" + stamp + "&pre_stamp=" + pre_stamp);
 
         var output = text.substring(0, caret);
         this.value = output + key + text.substring(caret + 1);
@@ -68,7 +45,7 @@ window.onload = function() {
   // @todo setTimeout to check for new data.
   var timeout;
   var timeOut = function() {
-    loadDoc(url);
+    loadDoc(url + "?pre_stamp=" + pre_stamp);
     timeout = setTimeout(timeOut, 5000);
   };
   timeOut();
@@ -115,10 +92,3 @@ function setCaretPosition(elemId, caretPos) {
         }
     }
 }
-
-</script>
-<body>
-<textarea name="screen" id="textscreen" spellcheck="false">
-</textarea>
-<div id="statusbar">Status</div>
-</body>

@@ -24,9 +24,13 @@ function loadDoc(url, force = false) {
           data.splice(0,event_size);
           event_size = len;
         }
-        var msg = "Received " + event_size + " packets";
+	if (event_size > parsed) {
+          var msg = "Received " + event_size + " packets";
+	}
+	else {
+          var msg = "Received " + parsed + " packets";
+	}
         statusbar.innerText = msg;
-        //var caret = getCaret(textscreen);
 
         // Calculate delays.
         var max = 0;
@@ -43,25 +47,41 @@ function loadDoc(url, force = false) {
             min = item.stamp;
           }
         });
-        var ratio = 3000 / max;
+
+	// All caught up.
+	if (max > pre_stamp) {
+	  //pre_stamp = max;
+	}
+	else {
+	  //return;
+	}
 
         // Replay input sequence
+        var ratio = 5000 / max;
         data.forEach(function(item) {
           delay = ratio * item.stamp;
           if (delay > (min * 2)) {
             console.log(delay);
+            delay = 3000;
           }
           setTimeout(function() {
             var text = textscreen.value;
             var output = text.substring(0, item.caret);
+            var caret = getCaret(textscreen);
+
             textscreen.value = output + item.letra + text.substring(item.caret + 1);
+            setCaretPosition('textscreen', caret);
+
             parsed++;
             statusbar.innerText = "Parsed " + parsed + "/" + event_size + " packets";
+
+            // All caught up.
+    	    if (max > pre_stamp) {
+    	      pre_stamp = max;
+              // parsed = 0;
+    	    }
           }, delay);
         });
-
-        var msg = "Parsed " + data.length + " events";
-        //setCaretPosition('textscreen', caret);
       }
     };
     xhttp.open("GET", url, true);
