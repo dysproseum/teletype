@@ -1,0 +1,39 @@
+body {
+  font-family: sans-serif;
+}
+.sidebar {
+  float: left;
+  display: block;
+  margin-right: 20px;
+}
+.sidebar a:visited {
+  color: blue;
+}
+.monitor {
+  float: left;
+  display: block;
+}
+.window {
+  overflow: hidden;
+}
+textarea {
+  overflow: hidden;
+  font-family: monospace;
+  resize: none;
+  line-break: anywhere;
+  border: none;
+  outline: none;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+#statusbar {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  background: #eeeeee;
+  padding: 4px;
+  font-size: 12px;
+  line-height: 12px;
+}
