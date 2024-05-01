@@ -1,5 +1,6 @@
 var url = '/teletype/post.php';
 var pre_stamp = 0;
+
 window.onload = function() {
   var textscreen = document.getElementById("textscreen");
   var statusbar = document.getElementById("statusbar");
@@ -12,7 +13,6 @@ window.onload = function() {
   textscreen.value = buffer;
 
   textscreen.onkeydown = function(e) {
-    console.log(e);
     // Backspace, Delete, Enter, Control.
     if (e.keyCode == 8 || e.keyCode == 46 || e.keyCode == 13 || e.keyCode == 17) {
       return false;
@@ -26,11 +26,8 @@ window.onload = function() {
         var caret = getCaret(this);
 
         var msg = "Input: " + e.key + " position " + caret + " time " + e.timeStamp;
-	console.log(msg);
 
         // Send this back to server (ping.js).
-	console.log(e.timeStamp);
-	    console.log(parseInt(e.timeStamp));
 	var stamp = parseInt(pre_stamp) + parseInt(e.timeStamp);
         loadDoc(url + "?letra=" + e.key + "&caret=" + caret + "&stamp=" + stamp + "&pre_stamp=" + pre_stamp);
 
