@@ -13,7 +13,7 @@ if($mysqli->connect_error) {
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $mysqli->set_charset("utf8mb4");
 
-// Create table.
+// Create tables.
 try {
   $test = $mysqli->query("SELECT letra FROM queue");
 } catch (mysqli_sql_exception $e) {
@@ -24,35 +24,45 @@ try {
   )";
   $mysqli->query($query);
 }
-try {
-  $stmt = $mysqli->prepare("SELECT letra FROM com1");
-  $stmt->execute();
-  $result = $stmt->get_result();
-  $stmt->close();
-  $posts = [];
-  foreach ($result as $row) {
-    $posts[] = $row;
-  }
-  if (sizeof($posts) == 0) {
-    $letra = '.';
-    $stamp = '0';
-    for ($caret=0; $caret < 2080; $caret++) {
-      $stmt = $mysqli->prepare("INSERT INTO com1 (letra, caret, stamp) VALUES (?, ?, ?)");
-      $stmt->bind_param('sis',
-        $letra,
-        $caret,
-        $stamp
-      );
-      $stmt->execute();
+
+// Create com tables.
+$tables = [
+  'com1',
+  'com2',
+  'com3',
+  'com4'
+];
+foreach ($tables as $table) {
+  try {
+    $stmt = $mysqli->prepare("SELECT letra FROM " . $table . " LIMIT 1");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
+    $posts = [];
+    foreach ($result as $row) {
+      $posts[] = $row;
     }
+    if (sizeof($posts) == 0) {
+      $letra = '.';
+      $stamp = '0';
+      for ($caret=0; $caret < 2080; $caret++) {
+        $stmt = $mysqli->prepare("INSERT INTO " . $table . " (letra, caret, stamp) VALUES (?, ?, ?)");
+        $stmt->bind_param('sis',
+          $letra,
+          $caret,
+          $stamp
+        );
+        $stmt->execute();
+      }
+    }
+  } catch (mysqli_sql_exception $e) {
+    $mysqli->query("CREATE TABLE IF NOT EXISTS " . $table . " (
+        letra varchar(255) NOT NULL,
+        caret int(11),
+        stamp int(11)
+      )"
+    );
   }
-} catch (mysqli_sql_exception $e) {
-  $query = "CREATE TABLE com1 (
-  letra varchar(255) NOT NULL,
-  caret int(11),
-  stamp int(11)
-  )";
-  $mysqli->query($query);
 }
 
 // Helper function to create a row in the database.
@@ -69,9 +79,9 @@ function newRow($letra, $caret, $stamp) {
 }
 
 // Helper function to update a row in the database.
-function updateRow($letra, $caret, $stamp) {
+function updateRow($table, $letra, $caret, $stamp) {
   global $mysqli;
-  $stmt = $mysqli->prepare("UPDATE com1 SET letra=?, stamp=? WHERE caret = ?");
+  $stmt = $mysqli->prepare("UPDATE " . $table . " SET letra=?, stamp=? WHERE caret = ?");
   $stmt->bind_param('ssi',
     $letra,
     $stamp,
@@ -82,9 +92,9 @@ function updateRow($letra, $caret, $stamp) {
 }
 
 // Helper function to return posts created and shared with a user.
-function getRowsCom1($stamp = 0) {
+function getRowsCom1($table = 'com1', $stamp = 0) {
   global $mysqli;
-  $stmt = $mysqli->prepare("SELECT * FROM com1 WHERE stamp > ?");
+  $stmt = $mysqli->prepare("SELECT * FROM " . $table . " WHERE stamp > ?");
   $stmt->bind_param('i', $stamp);
   $stmt->execute();
   $result = $stmt->get_result();
@@ -110,3 +120,27 @@ function getRows() {
   return $posts;
 }
 
+function getComPort() {
+  if (isset($_REQUEST['port'])) {
+    $port = $_REQUEST['port'];
+    $validated_port = '';
+    switch($port) {
+      case 'com1':
+        $validated_port = $port;
+	break;
+      case 'com2':
+        $validated_port = $port;
+	break;
+      case 'com3':
+        $validated_port = $port;
+	break;
+      case 'com4':
+        $validated_port = $port;
+	break;
+      default:
+	$validated_port = 'com1';
+	break;
+    }
+    return $validated_port;
+  }
+}

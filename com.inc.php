@@ -1,4 +1,4 @@
-<h2>tmodem on COM1</h2>
+<h2 id="label">tmodem</h2>
 <form>
 	<label for="baud_rate">Baud rate</label>
 		<select name="baud_rate">
@@ -15,5 +15,8 @@
 <div class="window">
 <textarea name="screen" id="textscreen" spellcheck="false" cols="80" rows="25">
 </textarea>
-<div id="statusbar">Serial connection on COM1 <span id="message"></span></div>
+<div id="statusbar">
+  <span id="general">Serial connection on COM1</span>
+  <span id="message"></span>
+</div>
 </div>

@@ -1,9 +1,16 @@
-var url = '/teletype/post.php';
+const urlParams = new URLSearchParams(window.location.search);
+var com_port = urlParams.get('port');
+var url = '/teletype/post.php' + '?port=' + com_port;
 var pre_stamp = 0;
 
 window.onload = function() {
   var textscreen = document.getElementById("textscreen");
   var statusbar = document.getElementById("statusbar");
+  var label = document.getElementById("label");
+  label.innerText = "tmodem on " + com_port.toUpperCase();
+  var general = document.getElementById("general");
+  general.innerText = "Serial communication on " + com_port.toUpperCase();
+
   var buffer = '';
   var c = '.';
   var size = 2080;
@@ -29,7 +36,7 @@ window.onload = function() {
 
         // Send this back to server (ping.js).
 	var stamp = parseInt(pre_stamp) + parseInt(e.timeStamp);
-        loadDoc(url + "?letra=" + e.key + "&caret=" + caret + "&stamp=" + stamp + "&pre_stamp=" + pre_stamp);
+        loadDoc(url + "&letra=" + e.key + "&caret=" + caret + "&stamp=" + stamp + "&pre_stamp=" + pre_stamp);
 
         var output = text.substring(0, caret);
         this.value = output + key + text.substring(caret + 1);
@@ -42,7 +49,7 @@ window.onload = function() {
   // @todo setTimeout to check for new data.
   var timeout;
   var timeOut = function() {
-    loadDoc(url + "?pre_stamp=" + pre_stamp);
+    loadDoc(url + "&pre_stamp=" + pre_stamp);
     timeout = setTimeout(timeOut, 5000);
   };
   timeOut();

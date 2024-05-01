@@ -13,6 +13,6 @@
     <a href="index.php?port=com4"><h2>COM4</h2></a>
   </div>
   <div class="monitor">
-    <?php include "com1.html"; ?>
+    <?php include "com.inc.php"; ?>
   </div>
 </body>
