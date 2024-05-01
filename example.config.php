@@ -4,8 +4,8 @@ global $conf;
 
 // MySQL database connection.
 $conf['database'] = [
-  'name' => 'hyperterminal',
-  'user' => 'php',
-  'pass' => '123qwe',
+  'name' => 'teletype',
+  'user' => 'root',
+  'pass' => 'example',
   'host' => '127.0.0.1',
 ];
