@@ -1,5 +1,8 @@
 const urlParams = new URLSearchParams(window.location.search);
 var com_port = urlParams.get('port');
+if (com_port == null) {
+  com_port = "com1";
+}
 var url = '/teletype/post.php' + '?port=' + com_port;
 var pre_stamp = 0;
 
@@ -46,7 +49,7 @@ window.onload = function() {
     return false;
   };
 
-  // @todo setTimeout to check for new data.
+  // setTimeout to check for new data.
   var timeout;
   var timeOut = function() {
     loadDoc(url + "&pre_stamp=" + pre_stamp);

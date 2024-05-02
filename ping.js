@@ -62,7 +62,7 @@ function loadDoc(url, force = false) {
         });
       }
     };
-    xhttp.open("GET", url, true);
+    xhttp.open("POST", url, true);
     xhttp.send();
     return true;
 }

@@ -1,29 +1,24 @@
 <?php
 
+if ($_SERVER['REQUEST_METHOD']=='GET' && realpath(__FILE__) == realpath($_SERVER['SCRIPT_FILENAME'])) {
+  header('HTTP/1.0 403 Forbidden', TRUE, 403);
+  exit("Forbidden");
+}
+
 // Connect to the database.
 require_once('config.php');
-global $conf;
+if (!isset($conf)) {
+  exit('Could not load database config.php');
+}
 $db = $conf['database'];
 
 global $mysqli;
 $mysqli = new mysqli($db['host'], $db['user'], $db['pass'], $db['name']);
 if($mysqli->connect_error) {
-  exit('Error connecting to database'); //Should be a message a typical user could understand in production
+  exit('Error connecting to database');
 }
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $mysqli->set_charset("utf8mb4");
-
-// Create tables.
-try {
-  $test = $mysqli->query("SELECT letra FROM queue");
-} catch (mysqli_sql_exception $e) {
-  $query = "CREATE TABLE queue (
-  letra varchar(255) NOT NULL,
-  caret int(11),
-  stamp varchar(255)
-  )";
-  $mysqli->query($query);
-}
 
 // Create com tables.
 $tables = [
