@@ -1,3 +1,19 @@
+<?php
+  require_once('config.php');
+  global $conf;
+
+  if (isset($_GET['port'])) {
+    $port = $_GET['port'];
+  }
+  else {
+    $port = 'com1';
+  }
+?>
+<script type="text/javascript">
+  var socket_uri = '<?php print $conf[$port]; ?>';
+  var com_port = '<?php print $port; ?>';
+</script>
+
 <h2 id="label">tmodem</h2>
 <form>
 	<label for="baud_rate">Baud rate</label>

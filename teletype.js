@@ -1,10 +1,4 @@
-const urlParams = new URLSearchParams(window.location.search);
-var com_port = urlParams.get('port');
-if (com_port == null) {
-  com_port = "com1";
-}
-var url = '/teletype/post.php' + '?port=' + com_port;
-var pre_stamp = 0;
+var parsed = 0;
 
 window.onload = function() {
   var textscreen = document.getElementById("textscreen");
@@ -37,9 +31,14 @@ window.onload = function() {
 
         var msg = "Input: " + e.key + " position " + caret + " time " + e.timeStamp;
 
-        // Send this back to server (ping.js).
-	var stamp = parseInt(pre_stamp) + parseInt(e.timeStamp);
-        loadDoc(url + "&letra=" + e.key + "&caret=" + caret + "&stamp=" + stamp + "&pre_stamp=" + pre_stamp);
+        // Prepare message.
+        var obj = new Object();
+        obj.letra = e.key;
+        obj.caret = caret;
+        var message = JSON.stringify(obj);
+
+        // Send to websocket.
+        socket.send(message);
 
         var output = text.substring(0, caret);
         this.value = output + key + text.substring(caret + 1);
@@ -49,13 +48,30 @@ window.onload = function() {
     return false;
   };
 
-  // setTimeout to check for new data.
-  var timeout;
-  var timeOut = function() {
-    loadDoc(url + "&pre_stamp=" + pre_stamp);
-    timeout = setTimeout(timeOut, 5000);
+  socket = new WebSocket(socket_uri);
+  socket.onopen = function() {
+    console.log("Websocket opened.");
   };
-  timeOut();
+  socket.onclose = function() {
+    console.log("Websocket closed.");
+  };
+  socket.onmessage = function(message) {
+    if (message.data == 'ping') {
+      return;
+    }
+    var item = JSON.parse(message.data);
+
+    var text = textscreen.value;
+    var output = text.substring(0, item.caret);
+    var caret = getCaret(textscreen);
+
+    textscreen.value = output + item.letra + text.substring(item.caret + 1);
+    setCaretPosition('textscreen', caret);
+
+    parsed++;
+    var statusbar = document.getElementById("message");
+    statusbar.innerText = "Received " + parsed + " packets";
+  };
 
 }
 
