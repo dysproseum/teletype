@@ -1,5 +1,0 @@
-Teletype is a terminal emulator that runs in the browser.
-
-The application mimics the communication ports (COM1, COM2, etc.) on a computer to facilitate serial transfers in an 80x25 buffer between connections.
-
-This is used to re-create the dial-up networking experience provided by HyperTerminal.
