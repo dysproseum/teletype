@@ -12,11 +12,11 @@
 	</select>
 	<input type="button" value="Reconnect" />
 </form>
-<div class="window">
-<textarea name="screen" id="textscreen" spellcheck="false" cols="80" rows="25">
-</textarea>
-<div id="statusbar">
-  <span id="general">Serial connection on COM1</span>
-  <span id="message"></span>
-</div>
+<div class="content">
+  <textarea name="screen" id="textscreen" spellcheck="false" cols="80" rows="25">
+  </textarea>
+  <div id="statusbar">
+    <span id="general">Serial connection on COM1</span>
+    <span id="message"></span>
+  </div>
 </div>

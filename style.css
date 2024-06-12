@@ -1,19 +1,27 @@
 body {
   font-family: sans-serif;
+  background: lightgray;
+  margin: 0 auto;
+  font-size: 12px;
+}
+.window {
+  display: block;
+  float: left;
+  padding: 20px;
 }
 .sidebar {
-  float: left;
   display: block;
+  float: left;
   margin-right: 20px;
 }
 .sidebar a:visited {
   color: blue;
 }
 .monitor {
-  float: left;
   display: block;
+  float: left;
 }
-.window {
+.content {
   overflow: hidden;
 }
 textarea {
@@ -21,7 +29,7 @@ textarea {
   font-family: monospace;
   resize: none;
   line-break: anywhere;
-  border: none;
+  border: inset;
   outline: none;
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
@@ -34,6 +42,4 @@ textarea {
   overflow: hidden;
   background: #eeeeee;
   padding: 4px;
-  font-size: 12px;
-  line-height: 12px;
 }
