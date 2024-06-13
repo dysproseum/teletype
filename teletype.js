@@ -123,6 +123,40 @@ window.onload = function() {
     }
     return false;
   };
+
+  textscreen.onpaste = function(e) {
+    var clipboardData = e.clipboardData || window.clipboardData;
+    pastedData = clipboardData.getData('Text');
+
+    // Check for newlines.
+    pastedData = pastedData.replace(/\s+/g, ' ').trim();
+    var len = pastedData.length;
+
+    // Prepare message.
+    var obj = new Object();
+    obj.paste = pastedData;
+    obj.caret = caret;
+    var message = JSON.stringify(obj);
+    // socket.send(message);
+
+    var text = this.value;
+    var caret = getCaret();
+    var output = text.substring(0, caret);
+    output += pastedData;
+
+    // Prevent overflow.
+    if (output.length > bufferSize) {
+      output = output.substring(0, bufferSize);
+    }
+    var end = caret + len;
+    if (end < bufferSize) {
+      output += text.substring(end, bufferSize);
+    }
+
+    this.value = output;
+    setCaretPosition(caret + len);
+    return false;
+  };
 }
 
 function initSocket() {
