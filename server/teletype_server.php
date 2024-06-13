@@ -33,14 +33,15 @@ class teletypeServer extends WebSocketServer {
   }
 
   protected function tick() {
-    if (sizeof($this->users) == 0) {
+    $cnt = sizeof($this->users);
+    if ($cnt == 0) {
       return;
     }
     foreach ($this->users as $id => $user) {
-      $message = 'ping';
-      if ($user->handshake) {
-        $this->send($user, $message, 'ping');
-      }
+      $message = json_encode([
+        'numUsers' => $cnt,
+      ]);
+      $this->send($user, $message, 'ping');
     }
   }
 }

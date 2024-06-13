@@ -23,6 +23,7 @@ body {
 }
 .content {
   overflow: hidden;
+  border: outset;
 }
 textarea {
   overflow: hidden;
@@ -42,4 +43,8 @@ textarea {
   overflow: hidden;
   background: #eeeeee;
   padding: 4px;
+  box-sizing: border-box;
+}
+#statusbar #status_xfer {
+  float: right;
 }

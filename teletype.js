@@ -1,33 +1,108 @@
+const c = '.';
+var bufferSize = 80 * 25;
 var parsed = 0;
+var timeOut;
+var socket;
+var numUsers = 0;
 
 window.onload = function() {
-  var textscreen = document.getElementById("textscreen");
-  var statusbar = document.getElementById("statusbar");
-  var label = document.getElementById("label");
-  label.innerText = "tmodem on " + com_port.toUpperCase();
-  var general = document.getElementById("general");
-  general.innerText = "Serial communication on " + com_port.toUpperCase();
 
-  var buffer = '';
-  var c = '.';
-  var size = 2080;
-  for(var i=0; i < size; i++) {
-    buffer += c;
+  connect.onclick = function() {
+    this.disabled = true;
+    disconnect.disabled = false;
+    status_conn.innerText = 'Connecting...';
+    textscreen.value = '';
+    parsed = 0;
+
+    var fillBuffer = function() {
+      if (parsed >= bufferSize) {
+        initSocket();
+        textscreen.disabled = false;
+        textscreen.focus();
+        setCaretPosition(0);
+      }
+      else {
+        textscreen.value += c;
+        parsed++;
+        timeOut = setTimeout(fillBuffer, 115200 / baud_rate.value);
+      }
+    };
+    fillBuffer();
   }
-  textscreen.value = buffer;
 
-  textscreen.onkeydown = function(e) {
-    // Backspace, Delete, Enter, Control.
-    if (e.keyCode == 8 || e.keyCode == 46 || e.keyCode == 13 || e.keyCode == 17) {
-      return false;
+  disconnect.onclick = function() {
+    connect.disabled = false;
+    this.disabled = true;
+    clearTimeout(timeOut);
+    socket.close();
+  };
+
+  textscreen.onclick = function() {
+    if (this.selectionStart == this.selectionEnd) {
+      setCaretPosition(getCaret());
     }
   };
 
+  textscreen.onkeydown = function(e) {
+    switch(e.key) {
+      case 'Backspace':
+      case 'ArrowLeft':
+        setCaretPosition(getCaret() - 1);
+        return false;
+      case 'ArrowRight':
+        setCaretPosition(getCaret() + 1);
+        return false;
+      case 'ArrowUp':
+        setCaretPosition(getCaret() - 80);
+        return false;
+      case 'ArrowDown':
+        setCaretPosition(getCaret() + 80);
+        return false;
+      case 'Delete':
+      case 'Insert':
+        return false;
+      default:
+    }
+  };
+
+  textscreen.onkeyup = function(e) {
+    switch(e.key) {
+      case 'Home':
+        setCaretPosition(getCaret());
+        return false;
+      case 'End':
+        setCaretPosition(getCaret() - 1);
+        return false;
+    }
+  }
+
   textscreen.onkeypress = function(e) {
     var key = String.fromCharCode(e.which || e.charCode || e.keyCode);
+    var caret = getCaret();
+    switch(e.key) {
+      case 'Enter':
+        if (caret % 80 == 0 && textscreen.selectionStart == textscreen.selectionEnd) {
+          setCaretPosition(caret);
+          return false;
+        }
+        caret++;
+        while (caret % 80 != 0) {
+          caret++;
+          console.log(caret);
+        }
+        setCaretPosition(caret);
+        return false;
+      case 'Backspace':
+        setCaretPosition(caret - 1);
+        return false;
+    }
+
     if (/[A-Za-z0-9 ]/.test(key)) {
         var text = this.value;
-        var caret = getCaret(this);
+        var caret = getCaret();
+        if (caret >= bufferSize) {
+          return false;
+        }
 
         var msg = "Input: " + e.key + " position " + caret + " time " + e.timeStamp;
 
@@ -39,50 +114,78 @@ window.onload = function() {
 
         // Send to websocket.
         socket.send(message);
+        parsed++;
 
         var output = text.substring(0, caret);
         this.value = output + key + text.substring(caret + 1);
-        setCaretPosition('textscreen', caret + 1);
+        setCaretPosition(caret + 1);
         return false;
     }
     return false;
   };
+}
 
+function initSocket() {
+  // Set up websocket.
   socket = new WebSocket(socket_uri);
+
   socket.onopen = function() {
     console.log("Websocket opened.");
+    status_conn.innerText = "Connected.";
+    status_type.innerText = "Serial communication on " + com_port.toUpperCase() + ".";
   };
+
   socket.onclose = function() {
     console.log("Websocket closed.");
+    status_conn.innerText = "Disconnected.";
+    status_type.innerText = "";
+    status_mesg.innerText = "";
+    connect.disabled = false;
+    disconnect.disabled = true;
+    textscreen.disabled = true;
+    parsed = 0;
   };
+
   socket.onmessage = function(message) {
     if (message.data == 'ping') {
       return;
     }
+
     var item = JSON.parse(message.data);
+
+    if (item.numUsers) {
+      if (numUsers != item.numUsers) {
+        numUsers = item.numUsers;
+        status_mesg.innerText = numUsers + " users online.";
+      }
+      return;
+    }
 
     var text = textscreen.value;
     var output = text.substring(0, item.caret);
-    var caret = getCaret(textscreen);
+    var caret = getCaret();
 
     textscreen.value = output + item.letra + text.substring(item.caret + 1);
-    setCaretPosition('textscreen', caret);
+    setCaretPosition(caret);
 
     parsed++;
-    var statusbar = document.getElementById("message");
-    statusbar.innerText = "Received " + parsed + " packets";
+    status_xfer.innerText = "Received " + parsed + " packets";
   };
-
 }
 
-function getCaret(el) { 
-  if (el.selectionStart) { 
-    return el.selectionStart; 
-  } else if (document.selection) { 
-    el.focus(); 
+function getCaret(el) {
+  if (!el) {
+    el = textscreen;
+  }
 
-    var r = document.selection.createRange(); 
-    if (r == null) { 
+  if (el.selectionStart) {
+    return el.selectionStart;
+  }
+  else if (document.selection) {
+    el.focus();
+
+    var r = document.selection.createRange();
+    if (r == null) {
       return 0; 
     } 
 
@@ -96,22 +199,20 @@ function getCaret(el) {
   return 0; 
 }
 
-function setCaretPosition(elemId, caretPos) {
-    var elem = document.getElementById(elemId);
+function setCaretPosition(caretPos, elem) {
+  if (!elem) {
+    elem = textscreen;
+  }
 
-    if(elem != null) {
-        if(elem.createTextRange) {
-            var range = elem.createTextRange();
-            range.move('character', caretPos);
-            range.select();
-        }
-        else {
-            if(elem.selectionStart) {
-                elem.focus();
-                elem.setSelectionRange(caretPos, caretPos + 1);
-            }
-            else
-                elem.focus();
-        }
+  if(elem != null) {
+    if(elem.createTextRange) {
+      var range = elem.createTextRange();
+      range.move('character', caretPos);
+      range.select();
     }
+    else {
+      elem.focus();
+      elem.setSelectionRange(caretPos, caretPos + 1);
+    }
+  }
 }
