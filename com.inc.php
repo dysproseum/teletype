@@ -8,7 +8,12 @@
   else {
     $port = 'com1';
   }
+  if (!isset($conf[$port])) {
+    header('HTTP/1.1 404 Not Found');
+    exit('Invalid port');
+  }
 ?>
+
 <script type="text/javascript">
   var socket_uri = '<?php print $conf[$port]; ?>';
   var com_port = '<?php print $port; ?>';
