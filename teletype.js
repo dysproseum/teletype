@@ -1,6 +1,7 @@
 const c = '.';
 var bufferSize = 80 * 25;
-var parsed = 0;
+var received = 0;
+var sent = 0;
 var timeOut;
 var socket;
 var numUsers = 0;
@@ -10,21 +11,21 @@ window.onload = function() {
   var textscreen = document.getElementById('textscreen');
   var menubar = document.getElementById('menubar');
   menubar.clientWidth = textscreen.clientWidth;
+  toggleConnection(false);
 
   connect.onclick = function() {
-    this.disabled = true;
-    disconnect.disabled = false;
-    status_conn.innerText = 'Connecting...';
+    toggleConnection(true);
     textscreen.value = '';
-    parsed = 0;
+    received = 0;
 
     var fillBuffer = function() {
-      if (parsed >= bufferSize) {
+      if (received >= bufferSize) {
         initSocket();
       }
       else {
         textscreen.value += c;
-        parsed++;
+        received++;
+        updateXfer();
         timeOut = setTimeout(fillBuffer, 115200 / baud_rate.value);
       }
     };
@@ -32,8 +33,6 @@ window.onload = function() {
   }
 
   disconnect.onclick = function() {
-    connect.disabled = false;
-    this.disabled = true;
     clearTimeout(timeOut);
     socket.close();
   };
@@ -117,10 +116,11 @@ window.onload = function() {
 
     // Send to websocket.
     socket.send(message);
-    parsed++;
+    sent++;
 
     // Update display.
     typeTextscreen(caret, e.key, true);
+    updateXfer();
     return false;
   };
 
@@ -154,8 +154,7 @@ function initSocket() {
 
   socket.onopen = function() {
     console.log("Websocket opened.");
-    status_conn.innerText = "Connected.";
-    status_type.innerText = "Serial communication on " + com_port.toUpperCase() + ".";
+    status_conn.innerText = "Connected";
     textscreen.disabled = false;
     textscreen.focus();
     setCaretPosition(0);
@@ -163,13 +162,9 @@ function initSocket() {
 
   socket.onclose = function() {
     console.log("Websocket closed.");
-    status_conn.innerText = "Disconnected.";
-    status_type.innerText = "";
-    status_mesg.innerText = "";
-    connect.disabled = false;
-    disconnect.disabled = true;
-    textscreen.disabled = true;
-    parsed = 0;
+    toggleConnection(false);
+    received = 0;
+    sent = 0;
   };
 
   socket.onmessage = function(message) {
@@ -182,7 +177,12 @@ function initSocket() {
     if (item.numUsers) {
       if (numUsers != item.numUsers) {
         numUsers = item.numUsers;
-        status_mesg.innerText = numUsers + " users online.";
+        if (numUsers == 1) {
+          status_mesg.innerText = "1 user online";
+        }
+        else {
+          status_mesg.innerText = numUsers + " users online";
+        }
       }
       return;
     }
@@ -195,8 +195,8 @@ function initSocket() {
       typeTextscreen(item.caret, item.letra);
     }
 
-    parsed++;
-    status_xfer.innerText = "Received " + parsed + " packets";
+    received++;
+    updateXfer();
   };
 }
 
@@ -276,4 +276,29 @@ function pasteTextscreen(pastedData, caret, typed) {
     currentCaret = caret + len;
   }
   setCaretPosition(currentCaret);
+}
+
+function updateXfer() {
+  status_xfer.innerText = "Received " + received + " / Sent " + sent;
+}
+
+function toggleConnection(conn) {
+  if (conn) {
+    status_conn.innerText = "Connecting...";
+    status_type.innerText = "Serial connection on " + com_port.toUpperCase();
+    status_mesg.innerText = "Offline";
+    received = 0;
+    sent = 0;
+  }
+  else {
+    status_conn.innerText = "Disconnected";
+    status_type.innerText = "Serial connection on " + com_port.toUpperCase();
+    status_mesg.innerText = "Offline";
+    textscreen.disabled = true;
+    numUsers = 0;
+  }
+  updateXfer();
+  connect.disabled = conn;
+  disconnect.disabled = !conn;
+
 }
