@@ -44,7 +44,7 @@
   </div>
   <textarea name="screen" id="textscreen" spellcheck="false" cols="80" rows="25" disabled="disabled"></textarea>
   <div id="statusbar">
-    <span id="status_conn">Disconnected.</span>
+    <span id="status_conn"></span>
     <span id="status_type"></span>
     <span id="status_mesg"></span>
     <span id="status_xfer"></span>
