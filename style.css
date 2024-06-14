@@ -24,12 +24,22 @@ body {
 .content {
   overflow: hidden;
   border: outset;
+  background: lightgray;
+}
+#menubar {
+  padding: 4px;
+  line-height: 20px;
+}
+#menubar input[type=button] {
+  float: right;
+  margin-left: 4px;
 }
 textarea {
   overflow: hidden;
   font-family: monospace;
   resize: none;
   line-break: anywhere;
+  white-space: break-spaces;
   border: inset;
   outline: none;
   -webkit-box-shadow: none;
@@ -41,9 +51,9 @@ textarea {
   left: 0;
   width: 100%;
   overflow: hidden;
-  background: #eeeeee;
   padding: 4px;
   box-sizing: border-box;
+  line-height: 20px;
 }
 #statusbar #status_xfer {
   float: right;
