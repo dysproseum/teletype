@@ -10,6 +10,8 @@ class teletypeServer extends WebSocketServer {
   }
 
   protected $maxBufferSize = 4096;
+  protected $tickCount = 0;
+  protected $ticksPerPing = 4;
 
   protected function process($user, $message) {
     foreach ($this->users as $u) {
@@ -33,6 +35,11 @@ class teletypeServer extends WebSocketServer {
   }
 
   protected function tick() {
+    $this->tickCount++;
+    if ($this->tickCount < $this->ticksPerPing) {
+      return;
+    }
+    $this->tickCount = 0;
     $cnt = sizeof($this->users);
     if ($cnt == 0) {
       return;
