@@ -20,23 +20,28 @@
 </script>
 
 <h2 id="label">tmodem on <?php print strtoupper($port); ?></h2>
-<div class="statusbar">
-<form>
-	<label for="baud_rate">Baud rate</label>
-		<select id="baud_rate">
-			<option value="2400">2400</option>
-			<option value="4800">4800</option>
-			<option value="9600">9600</option>
-			<option value="14400">14400</option>
-			<option value="33600">33600</option>
-			<option value="57600">57600</option>
-			<option value="115200">115200</option>
-	</select>
-	<input type="button" id="connect" value="Connect" />
-	<input type="button" id="disconnect" value="Disconnect" disabled="disabled" />
-</form>
-</div>
 <div class="content">
+  <div id="menubar">
+    <form>
+      <label for="baud_rate">Baud rate</label>
+        <select id="baud_rate">
+          <option value="2400">2400</option>
+          <option value="4800">4800</option>
+          <option value="9600">9600</option>
+          <option value="14400">14400</option>
+          <option value="33600">33600</option>
+          <option value="57600">57600</option>
+          <option value="115200">115200</option>
+      </select>
+      <label for="encoding">Encoding</label>
+        <select id="encoding">
+          <option value="ascii">ASCII</option>
+          <option value="utf8">UTF-8</option>
+        </select>
+      <input type="button" id="disconnect" value="Disconnect" disabled="disabled" />
+      <input type="button" id="connect" value="Connect" />
+    </form>
+  </div>
   <textarea name="screen" id="textscreen" spellcheck="false" cols="80" rows="25" disabled="disabled"></textarea>
   <div id="statusbar">
     <span id="status_conn">Disconnected.</span>
