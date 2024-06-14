@@ -5,6 +5,8 @@ var sent = 0;
 var timeOut;
 var socket;
 var numUsers = 0;
+var pingsPerPong = 2;
+var pong = 0;
 
 window.onload = function() {
 
@@ -184,7 +186,12 @@ function initSocket() {
           status_mesg.innerText = numUsers + " users online";
         }
       }
-      return;
+      pong++;
+      if (pong >= pingsPerPong) {
+        socket.send('pong');
+        sent++;
+        pong = 0;
+      }
     }
 
     if (item.paste) {
@@ -300,5 +307,4 @@ function toggleConnection(conn) {
   updateXfer();
   connect.disabled = conn;
   disconnect.disabled = !conn;
-
 }
