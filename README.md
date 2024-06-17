@@ -12,7 +12,7 @@ A websocket server is used to facilitate communication between clients, based on
 
 ### SSL proxy
 
-Attempting to connect from a secure domain to an insecure websocket server at `ws://example.com/websocket/` will result in an error:
+Attempting to connect from a secure domain to an insecure websocket server at `ws://example.com/com1/` will result in an error:
 
 ```
 Failed to construct 'WebSocket': An insecure WebSocket connection may not be
@@ -32,8 +32,26 @@ server {
     ssl_certificate /path/to/certificate.pem;
     ssl_certificate_key /path/to/private/key.pem;
 
-    location = /websocket/ {
-        proxy_pass http://127.0.0.1:4000;
+    location = /com1/ {
+        proxy_pass http://127.0.0.1:4001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+    location = /com2/ {
+        proxy_pass http://127.0.0.1:4002;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+    location = /com3/ {
+        proxy_pass http://127.0.0.1:4003;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+    location = /com4/ {
+        proxy_pass http://127.0.0.1:4004;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -41,14 +59,38 @@ server {
 }
 ```
 
+Note that there are entries mapping each COM port for this application as paths corresponding to backend ports where the websocket server is running.
+
 ### Server
 
+Then, there are 4 instances of the websocket server launched, which can stay running in a `screen` session.
+
 ```
-# php teletype_server.php
+teletype/server# php teletype_server.php 4001
 Server started
-Listening on: 0.0.0.0:4000
+Listening on: 127.0.0.1:4001
+
+teletype/server# php teletype_server.php 4002
+Server started
+Listening on: 127.0.0.1:4002
+
+teletype/server# php teletype_server.php 4003
+Server started
+Listening on: 127.0.0.1:4003
+
+teletype/server# php teletype_server.php 4004
+Server started
+Listening on: 127.0.0.1:4004
 ```
 
 ### Client
 
-Opens a connection to `wss://example.com:8443/websocket/`
+Finally, a secure connection to the websocket can be opened successfully by the client.
+
+```
+var socket = new WebSocket('wss://example.com:8443/com1/');
+```
+
+### Demo
+
+See the working demo here: https://dysproseum.com/teletype/
