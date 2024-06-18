@@ -1,0 +1,44 @@
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.window {
+  padding: 0;
+}
+
+h1, .sidebar h2 {
+  float: left;
+  font-size: 14px;
+  margin-block-start: 0.67em;
+  margin-block-end: 0.67em;
+  padding-left: 4px;
+}
+
+.sidebar h2 {
+  text-decoration: underline;
+}
+
+.sidebar {
+  display: flex;
+  float: right;
+  margin-right: 4px;
+}
+
+.monitor h2 {
+  display: none;
+}
+
+label {
+  display: none;
+}
+
+textarea {
+  width: 100%;
+  overflow-y: auto;
+}
+
+#status_conn, #status_type {
+  display: none;
+}
