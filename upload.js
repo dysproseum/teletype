@@ -1,49 +1,51 @@
-// https://stackoverflow.com/questions/22659164/read-a-drag-and-dropped-file
-
 var uploadingFile;
 var receivingFile;
 
 window.addEventListener("load", function() {
+  // https://stackoverflow.com/questions/22659164/read-a-drag-and-dropped-file
   var file_drop = document.getElementById('file-drop');
-  file_drop.addEventListener(
-    'dragover',
-    function handleDragOver(evt) {
-console.log('dragover event');
-return;
-      evt.stopPropagation()
-      evt.preventDefault()
-      evt.dataTransfer.dropEffect = 'copy'
-    },
-    false
-  )
-  file_drop.addEventListener(
-    'drop',
-    function(evt) {
-console.log('drop event');
-      evt.stopPropagation()
-      evt.preventDefault()
-      var files = evt.dataTransfer.files  // FileList object.
-      var file = files[0]                 // File     object.
-      console.log(file);
-      readBinaryFile(file);
-    },
-    false
-  )
+  file_drop.addEventListener('dragover', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  }, false);
+
+  file_drop.addEventListener('drop', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    var files = e.dataTransfer.files;	// FileList object.
+    var file = files[0];                // File     object.
+    console.log(file);
+    readBinaryFile(file);
+  }, false);
 });
 
-var i = 0;
-var body;
+function downloadFile(content, filename, mimeType = 'text/plain') {
+  // https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url); // Clean up
+}
+
+var counter;
+var bytes;
 function sendBinaryChunk() {
 
-// @todo check for error or offline.
+  // @todo check for error or offline.
 
-  if (i == 0) {
+  if (counter == 0) {
     console.log("first frame");
     // Prepare special start message (length).
     var obj = new Object();
     obj.filename = uploadingFile.name;
     obj.letra = 'start';
-    obj.caret = body.length;
+    obj.caret = bytes.length;
     var message = JSON.stringify(obj);
   
     // Send to websocket.
@@ -51,17 +53,14 @@ function sendBinaryChunk() {
     sent++;
   }
 
-  console.log(i + '/' + body.length + ': ' + body[i]);
-
-  if (i >= body.length) {
-    clearTimeout(timeOut);
-    console.log("upload done");
+  if (counter >= bytes.length) {
+    clearInterval(timeOut);
  
     // Prepare explicit "done" message.
     var obj = new Object();
     obj.filename = uploadingFile.name;
     obj.letra = 'done';
-    obj.caret = body.length;
+    obj.caret = bytes.length;
     var message = JSON.stringify(obj);
   
     // Send to websocket.
@@ -69,6 +68,7 @@ function sendBinaryChunk() {
     sent++;
 
     // filedone.wav
+    console.log("upload done");
     body = null;
 
     return;
@@ -77,20 +77,19 @@ function sendBinaryChunk() {
   // Prepare message.
   var obj = new Object();
   obj.filename = uploadingFile.name;
-  obj.letra = body[i];
-  obj.caret = i;
+  obj.letra = bytes[counter];
+  obj.caret = counter;
   var message = JSON.stringify(obj);
+  console.log(obj.letra.toString(16));
 
   // Send to websocket.
   socket.send(message);
   sent++;
 
   // Update display.
-  //typeTextscreen(caret, e.key, true);
-  sent++;  
   updateXfer();
 
-  i++;
+  counter++;
 }
 
 function readBinaryFile(file) {
@@ -98,16 +97,11 @@ function readBinaryFile(file) {
   uploadingFile = file;
 
   reader = new FileReader();
-  reader.onload = function (event) {
-    console.log(event.target.result);
-    //holder.style.background = 'url(' + event.target.result + ') no-repeat center';
-
-    // break up string into characters and send with websocket.
-    body = event.target.result;
-    //timeOut = setInterval(sendBinaryChunk, 500);
+  reader.readAsArrayBuffer(file);
+  reader.onload = function() {
+    var arrayBuffer = reader.result
+    bytes = new Uint8Array(arrayBuffer);
+    counter = 0;
     timeOut = setInterval(sendBinaryChunk, 1000 / baud_rate.value / 8);
-
-  };
-  //reader.readAsDataURL(file);
-  reader.readAsBinaryString(file)
+  }
 }

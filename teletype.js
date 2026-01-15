@@ -181,14 +181,14 @@ function initSocket() {
     var item = JSON.parse(message.data);
 
     if (item.filename) {
-      console.log(item);
+      console.log(item.letra.toString(16));
 
       // get start
       if (item.letra == 'start') {
         //var body = new Array(item.caret);
         receivingFile = {
           'filename': item.filename,
-          'body': new Array(item.caret),
+          'body': new Uint8Array(item.caret),
           'length': item.caret,
         };
 
@@ -201,17 +201,15 @@ function initSocket() {
       receivingFile.body[item.caret] = item.letra;
 
       // update progress?
+      received++;
+      updateXfer();
 
       // detect end
       if (item.letra == 'done') {
         console.log('file transfer complete'); 
-
-        // download 
-        // https://stackoverflow.com/questions/16086162/handle-file-download-from-ajax-post
-
-        return;
+        downloadFile(receivingFile.body, receivingFile.filename, mimeType = 'image/png');
       }
-
+      return;
     }
 
     if (item.numUsers) {
