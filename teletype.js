@@ -164,6 +164,8 @@ function initSocket() {
     textscreen.disabled = false;
     textscreen.focus();
     setCaretPosition(0);
+    // Disable upload until connected.
+    sendfile.disabled = false;
   };
 
   socket.onclose = function() {
@@ -171,28 +173,35 @@ function initSocket() {
     toggleConnection(false);
     received = 0;
     sent = 0;
+    sendfile.disabled = true;
   };
 
   socket.onmessage = function(message) {
     if (message.data == 'ping') {
+      received++;
+      updateXfer();
       return;
     }
 
     var item = JSON.parse(message.data);
 
     if (item.filename) {
-      console.log(item.letra.toString(16));
+      //console.log(item.letra.toString(16));
+
+      // @todo if receivingFile is not this file, then ignore it.
 
       // get start
       if (item.letra == 'start') {
-        //var body = new Array(item.caret);
         receivingFile = {
           'filename': item.filename,
           'body': new Uint8Array(item.caret),
           'length': item.caret,
         };
 
-        // prompt user
+        // @todo visual indication
+        // implement a back and forth to confirm transfer?
+        // many users might be a problem
+        // maybe implement cancel?
 
         return;
       }
@@ -322,7 +331,7 @@ function pasteTextscreen(pastedData, caret, typed) {
 }
 
 function updateXfer() {
-  status_xfer.innerText = "Received " + received + " / Sent " + sent;
+  status_xfer.innerText = "Received " + received.toLocaleString('en') + " / Sent " + sent.toLocaleString('en') ;
 }
 
 function toggleConnection(conn) {

@@ -3,20 +3,50 @@ var receivingFile;
 
 window.addEventListener("load", function() {
   // https://stackoverflow.com/questions/22659164/read-a-drag-and-dropped-file
-  var file_drop = document.getElementById('file-drop');
-  file_drop.addEventListener('dragover', function(e) {
+  textscreen.addEventListener('dragenter', function(e) {
     e.stopPropagation();
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
+    if (!uploadingFile) {
+      document.body.classList.add('dragover');
+    }
   }, false);
 
-  file_drop.addEventListener('drop', function(e) {
+  textscreen.addEventListener('dragleave', function() {
+    document.body.classList.remove('dragover');
+  });
+
+  const startFileTransfer = function(files) {
+    var file = files[0]; // File object.
+    var answer = confirm("Send " + file.name + " (" + file.size.toLocaleString('en') + " bytes)?");
+    if (answer) {
+      sendfile.disabled = true;
+      readBinaryFile(file);
+    }
+    document.body.classList.remove('dragover');
+  };
+
+  sendfile.addEventListener('click', function() {
+    filedrop.click();
+  });
+
+  filedrop.addEventListener('change', function(e) {
     e.stopPropagation();
     e.preventDefault();
-    var files = e.dataTransfer.files;	// FileList object.
-    var file = files[0];                // File     object.
-    console.log(file);
-    readBinaryFile(file);
+    const files = e.target.files;
+    startFileTransfer(files);
+  });
+
+  textscreen.addEventListener('drop', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!uploadingFile) {
+      const files = e.dataTransfer.files; // FileList object.
+      startFileTransfer(files);
+    }
+    else {
+      alert('File transfer in progress');
+    }
   }, false);
 });
 
@@ -69,7 +99,10 @@ function sendBinaryChunk() {
 
     // filedone.wav
     console.log("upload done");
-    body = null;
+    bytes = null;
+    uploadingFile = null;
+    // Re-enable uploads.
+    sendfile.disabled = false;
 
     return;
   }
@@ -80,7 +113,7 @@ function sendBinaryChunk() {
   obj.letra = bytes[counter];
   obj.caret = counter;
   var message = JSON.stringify(obj);
-  console.log(obj.letra.toString(16));
+  //console.log(obj.letra.toString(16));
 
   // Send to websocket.
   socket.send(message);
@@ -93,7 +126,6 @@ function sendBinaryChunk() {
 }
 
 function readBinaryFile(file) {
- //var file = e.dataTransfer.files[0],
   uploadingFile = file;
 
   reader = new FileReader();

@@ -21,9 +21,4 @@
     </div>
   </div>
 
-<form action="post.php" method="post">
-File: <input type="file" id="file-drop" name="file" />
-<input type="submit" value="Upload" />
-</form>
-
 </body>

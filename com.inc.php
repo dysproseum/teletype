@@ -40,6 +40,8 @@
         </select>
       <input type="button" id="disconnect" value="Disconnect" disabled="disabled" />
       <input type="button" id="connect" value="Connect" />
+      <input type="button" id="sendfile" value="Send File" disabled="disabled" />
+      <input type="file" id="filedrop" name="file" />
     </form>
   </div>
   <textarea name="screen" id="textscreen" spellcheck="false" cols="80" rows="25" disabled="disabled"></textarea>
