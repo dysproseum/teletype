@@ -47,8 +47,11 @@
   <textarea name="screen" id="textscreen" spellcheck="false" cols="80" rows="25" disabled="disabled"></textarea>
   <div id="statusbar">
     <span id="status_conn"></span>
-    <span id="status_type"></span>
     <span id="status_mesg"></span>
+    <span id="status_file">
+      <span id="status_file_msg"></span>
+      <span id="status_file_fill"></span>
+    </span>
     <span id="status_xfer"></span>
   </div>
 </div>

@@ -76,3 +76,25 @@ textarea {
   filter: saturate(1.3);
   color: wheat;
 }
+#status_file {
+  width: 200px;
+  background: white;
+  overflow: hidden;
+}
+#status_file span {
+  position: relative;
+  border: 0 none !important;
+}
+#status_file_msg {
+  mix-blend-mode: difference;
+  background: inherit;
+  background-clip: text;
+  color: transparent;
+  z-index: 3;
+}
+#status_file_fill {
+  width: 100%;
+  top: -100%;
+  left: -212px; /* includes 4px left padding making parent span larger than 200 */
+  background: blue;
+}

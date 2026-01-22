@@ -1,5 +1,4 @@
 var uploadingFile;
-var receivingFile;
 
 window.addEventListener("load", function() {
   // https://stackoverflow.com/questions/22659164/read-a-drag-and-dropped-file
@@ -70,7 +69,7 @@ function sendBinaryChunk() {
   // @todo check for error or offline.
 
   if (counter == 0) {
-    console.log("first frame");
+    console.log("Upload started.");
     // Prepare special start message (length).
     var obj = new Object();
     obj.filename = uploadingFile.name;
@@ -96,9 +95,13 @@ function sendBinaryChunk() {
     // Send to websocket.
     socket.send(message);
     sent++;
+    percent = counter / bytes.length * 100;
+
+    // Update display.
+    updateXfer();
 
     // filedone.wav
-    console.log("upload done");
+    console.log("Upload completed.");
     bytes = null;
     uploadingFile = null;
     // Re-enable uploads.
@@ -113,11 +116,12 @@ function sendBinaryChunk() {
   obj.letra = bytes[counter];
   obj.caret = counter;
   var message = JSON.stringify(obj);
-  //console.log(obj.letra.toString(16));
+  // console.log(obj.letra.toString(16));
 
   // Send to websocket.
   socket.send(message);
   sent++;
+  percent = counter / bytes.length * 100;
 
   // Update display.
   updateXfer();

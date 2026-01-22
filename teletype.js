@@ -8,10 +8,15 @@ var numUsers = 0;
 var pingsPerPong = 2;
 var pong = 0;
 
+var receivingFile;
+var percent = 0;
+
 window.onload = function() {
 
   var textscreen = document.getElementById('textscreen');
   var menubar = document.getElementById('menubar');
+  status_file_msg = document.getElementById('status_file_msg');
+  status_file_fill = document.getElementById('status_file_fill');
   menubar.clientWidth = textscreen.clientWidth;
   toggleConnection(false);
 
@@ -35,7 +40,6 @@ window.onload = function() {
       }
     };
     timeOut = setInterval(fillBuffer, 1000 / baud_rate.value / 8);
-    //fillBuffer();
   }
 
   disconnect.onclick = function() {
@@ -186,11 +190,13 @@ function initSocket() {
     var item = JSON.parse(message.data);
 
     if (item.filename) {
-      //console.log(item.letra.toString(16));
+      // console.log(item.letra.toString(16));
 
       // @todo if receivingFile is not this file, then ignore it.
+      // or dont let new clients start transfer until done is reached?
+      // (receivingFile && item.filename == receivingFile.filename) {
 
-      // get start
+      // Detect file start.
       if (item.letra == 'start') {
         receivingFile = {
           'filename': item.filename,
@@ -198,25 +204,32 @@ function initSocket() {
           'length': item.caret,
         };
 
-        // @todo visual indication
-        // implement a back and forth to confirm transfer?
+        sendfile.disabled = true;
+        // @todo implement timeout 30s to re-enable send button?
         // many users might be a problem
         // maybe implement cancel?
 
         return;
       }
 
-      // append to string array.
+      // Append to string array.
       receivingFile.body[item.caret] = item.letra;
 
-      // update progress?
+      // Update progress.
       received++;
+      if (receivingFile && receivingFile.length) {
+        percent = parseInt(item.caret) / parseInt(receivingFile.length) * 100;
+      }
       updateXfer();
 
-      // detect end
+      // Detect file end.
       if (item.letra == 'done') {
-        console.log('file transfer complete'); 
+        console.log('Download completed.');
         downloadFile(receivingFile.body, receivingFile.filename, mimeType = 'image/png');
+        sendfile.disabled = false;
+        // @todo clear progress bar.
+        //percent = 0;
+        //receivingFile = null;
       }
       return;
     }
@@ -332,19 +345,38 @@ function pasteTextscreen(pastedData, caret, typed) {
 
 function updateXfer() {
   status_xfer.innerText = "Received " + received.toLocaleString('en') + " / Sent " + sent.toLocaleString('en') ;
+
+  if (receivingFile && receivingFile.filename) {
+    let filename = receivingFile.filename.toLocaleUpperCase('en');
+    if (filename.length > 12) {
+      filename = filename.replace(' ', '');
+      filename = filename.slice(0, 6) + "~1" + filename.slice(filename.lastIndexOf('.'));
+    }
+    status_file_msg.innerHTML = filename + " " + percent.toFixed() + "%";
+    status_file_fill.style.left = 0 - (212 - (percent * 208 / 100)) + 'px';
+  }
+  if (uploadingFile && uploadingFile.name) {
+    let filename = uploadingFile.name.toLocaleUpperCase('en');
+    if (filename.length > 12) {
+      filename = filename.replace(' ', '');
+      filename = filename.slice(0, 6) + "~1" + filename.slice(filename.lastIndexOf('.'));
+    }
+    status_file_msg.innerHTML = filename + " " + percent.toFixed() + "%";
+    status_file_fill.style.left = 0 - (212 - (percent * 208 / 100)) + 'px';
+  }
 }
 
 function toggleConnection(conn) {
   if (conn) {
     status_conn.innerText = "Connecting...";
-    status_type.innerText = "Serial connection on " + com_port.toUpperCase();
+    //status_type.innerText = "Serial connection on " + com_port.toUpperCase();
     status_mesg.innerText = "Offline";
     received = 0;
     sent = 0;
   }
   else {
     status_conn.innerText = "Disconnected";
-    status_type.innerText = "Serial connection on " + com_port.toUpperCase();
+    //status_type.innerText = "Serial connection on " + com_port.toUpperCase();
     status_mesg.innerText = "Offline";
     textscreen.disabled = true;
     numUsers = 0;
