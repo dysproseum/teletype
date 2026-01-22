@@ -54,7 +54,7 @@ window.onload = function() {
   };
 
   textscreen.onkeydown = function(e) {
-    switch(e.key) {
+    switch(e.code) {
       case 'Backspace':
       case 'ArrowLeft':
         setCaretPosition(getCaret() - 1);
@@ -75,6 +75,21 @@ window.onload = function() {
       case 'Delete':
       case 'Insert':
         return false;
+      case 'KeyG':
+        if (e.ctrlKey) {
+          console.log('BEL');
+          // Prepare message.
+          var obj = new Object();
+          obj.letra = 0x07;
+          obj.caret = caret;
+          var message = JSON.stringify(obj);
+
+          // Send to websocket.
+          socket.send(message);
+          sent++;
+          updateXfer();
+          return false;
+        }
       default:
     }
   };
@@ -257,7 +272,12 @@ function initSocket() {
     }
 
     if (item.letra) {
-      typeTextscreen(item.caret, item.letra);
+      if (item.letra == 0x07) {
+        bel.play();
+      }
+      else {
+        typeTextscreen(item.caret, item.letra);
+      }
     }
 
     received++;

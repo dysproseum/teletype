@@ -53,5 +53,6 @@
       <span id="status_file_fill"></span>
     </span>
     <span id="status_xfer"></span>
+    <audio id="bel" src="assets/bell.mp3" hidden></audio>
   </div>
 </div>
