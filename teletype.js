@@ -151,6 +151,12 @@ window.onload = function() {
 
   textscreen.onpaste = function(e) {
     var clipboardData = e.clipboardData || window.clipboardData;
+
+    // Check for file.
+    if (clipboardData.files) {
+      startFileTransfer(clipboardData.files);
+      return;
+    }
     pastedData = clipboardData.getData('Text');
 
     // Check for newlines.

@@ -1,5 +1,18 @@
 var uploadingFile;
 
+const confirmFileUpload = function(file) {
+  return confirm("Send " + file.name + " (" + file.size.toLocaleString('en') + " bytes)?");
+};
+
+const startFileTransfer = function(files) {
+  var file = files[0]; // File object.
+  if (file && confirmFileUpload(file)) {
+    sendfile.disabled = true;
+    readBinaryFile(file);
+  }
+  document.body.classList.remove('dragover');
+};
+
 window.addEventListener("load", function() {
   // https://stackoverflow.com/questions/22659164/read-a-drag-and-dropped-file
   textscreen.addEventListener('dragenter', function(e) {
@@ -14,16 +27,6 @@ window.addEventListener("load", function() {
   textscreen.addEventListener('dragleave', function() {
     document.body.classList.remove('dragover');
   });
-
-  const startFileTransfer = function(files) {
-    var file = files[0]; // File object.
-    var answer = confirm("Send " + file.name + " (" + file.size.toLocaleString('en') + " bytes)?");
-    if (answer) {
-      sendfile.disabled = true;
-      readBinaryFile(file);
-    }
-    document.body.classList.remove('dragover');
-  };
 
   sendfile.addEventListener('click', function() {
     filedrop.click();
