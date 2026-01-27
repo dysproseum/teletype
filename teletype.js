@@ -26,9 +26,6 @@ window.onload = function() {
     received = 0;
 
     var fillBuffer = function() {
-
-      // clear buffer?
-
       if (received >= bufferSize) {
         clearInterval(timeOut);
         initSocket();
@@ -43,7 +40,7 @@ window.onload = function() {
   }
 
   disconnect.onclick = function() {
-    clearTimeout(timeOut);
+    clearInterval(timeOut);
     socket.close();
   };
 
@@ -198,11 +195,14 @@ function initSocket() {
     toggleConnection(false);
     received = 0;
     sent = 0;
+    clearInterval(timeOut);
+    fileTimer = clearTimeout(fileTimer);
+    uploadingFile = null;
     sendfile.disabled = true;
   };
 
   socket.onmessage = function(message) {
-    if (message.data == 'ping') {
+    if (message.data == 'ping' || message.data == 'pong') {
       received++;
       updateXfer();
       return;
@@ -211,11 +211,11 @@ function initSocket() {
     var item = JSON.parse(message.data);
 
     if (item.filename) {
-      // console.log(item.letra.toString(16));
+      sendfile.disabled = true;
+      clearTimeout(fileTimer);
+      fileTimer = setTimeout(fileTimedOut, fileTimeout);
 
-      // @todo if receivingFile is not this file, then ignore it.
-      // or dont let new clients start transfer until done is reached?
-      // (receivingFile && item.filename == receivingFile.filename) {
+      // console.log(item.letra.toString(16));
 
       // Detect file start.
       if (item.letra == 'start') {
@@ -224,33 +224,27 @@ function initSocket() {
           'body': new Uint8Array(item.caret),
           'length': item.caret,
         };
-
-        sendfile.disabled = true;
-        // @todo implement timeout 30s to re-enable send button?
-        // many users might be a problem
-        // maybe implement cancel?
-
         return;
       }
 
-      // Append to string array.
-      receivingFile.body[item.caret] = item.letra;
-
-      // Update progress.
-      received++;
+      // Append to string array and update progress.
       if (receivingFile && receivingFile.length) {
+        receivingFile.body[item.caret] = item.letra;
         percent = parseInt(item.caret) / parseInt(receivingFile.length) * 100;
       }
+      received++;
       updateXfer();
 
       // Detect file end.
       if (item.letra == 'done') {
         console.log('Download completed.');
-        downloadFile(receivingFile.body, receivingFile.filename, mimeType = 'image/png');
+        fileTimer = clearTimeout(fileTimer);
+        if (receivingFile) {
+          downloadFile(receivingFile.body, receivingFile.filename);
+        }
         sendfile.disabled = false;
         // @todo clear progress bar.
-        //percent = 0;
-        //receivingFile = null;
+        receivingFile = null;
       }
       return;
     }
@@ -267,7 +261,7 @@ function initSocket() {
       }
       pong++;
       if (pong >= pingsPerPong) {
-        socket.send('{"type": "pong"}');
+        socket.send('pong');
         sent++;
         pong = 0;
       }
@@ -395,14 +389,12 @@ function updateXfer() {
 function toggleConnection(conn) {
   if (conn) {
     status_conn.innerText = "Connecting...";
-    //status_type.innerText = "Serial connection on " + com_port.toUpperCase();
     status_mesg.innerText = "Offline";
     received = 0;
     sent = 0;
   }
   else {
     status_conn.innerText = "Disconnected";
-    //status_type.innerText = "Serial connection on " + com_port.toUpperCase();
     status_mesg.innerText = "Offline";
     textscreen.disabled = true;
     numUsers = 0;

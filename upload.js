@@ -1,4 +1,6 @@
 var uploadingFile;
+var fileTimer;
+const fileTimeout = 5000;
 
 const confirmFileUpload = function(file) {
   return confirm("Send " + file.name + " (" + file.size.toLocaleString('en') + " bytes)?");
@@ -42,17 +44,19 @@ window.addEventListener("load", function() {
   textscreen.addEventListener('drop', function(e) {
     e.stopPropagation();
     e.preventDefault();
-    if (!uploadingFile) {
-      const files = e.dataTransfer.files; // FileList object.
-      startFileTransfer(files);
+
+    if (sendfile.disabled) {
+      alert('File transfer in progress');
+      document.body.classList.remove('dragover');
     }
     else {
-      alert('File transfer in progress');
+      const files = e.dataTransfer.files; // FileList object.
+      startFileTransfer(files);
     }
   }, false);
 });
 
-function downloadFile(content, filename, mimeType = 'text/plain') {
+const downloadFile = function(content, filename, mimeType = 'text/plain') {
   // https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
@@ -64,6 +68,15 @@ function downloadFile(content, filename, mimeType = 'text/plain') {
   document.body.removeChild(a);
   URL.revokeObjectURL(url); // Clean up
 }
+
+const fileTimedOut = function() {
+  console.log('File transfer stalled.');
+  // @todo consolidate file and progress bar code.
+  // receivingFile = null;
+  // percent = 0;
+  // status_file_fill.style.left = '-212px';
+  sendfile.disabled = false;
+};
 
 var counter;
 var bytes;
