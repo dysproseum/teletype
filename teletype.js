@@ -373,7 +373,7 @@ function updateXfer() {
       filename = filename.slice(0, 6) + "~1" + filename.slice(filename.lastIndexOf('.'));
     }
     status_file_msg.innerHTML = filename + " " + percent.toFixed() + "%";
-    status_file_fill.style.left = 0 - (212 - (percent * 208 / 100)) + 'px';
+    status_file_fill.style.width = percent + '%';
   }
   if (uploadingFile && uploadingFile.name) {
     let filename = uploadingFile.name.toLocaleUpperCase('en');
@@ -382,7 +382,7 @@ function updateXfer() {
       filename = filename.slice(0, 6) + "~1" + filename.slice(filename.lastIndexOf('.'));
     }
     status_file_msg.innerHTML = filename + " " + percent.toFixed() + "%";
-    status_file_fill.style.left = 0 - (212 - (percent * 208 / 100)) + 'px';
+    status_file_fill.style.width = percent + '%';
   }
 }
 

@@ -80,12 +80,14 @@ textarea {
   width: 200px;
   background: white;
   overflow: hidden;
+  padding: 0 !important;
 }
 #status_file span {
-  position: relative;
   border: 0 none !important;
 }
 #status_file_msg {
+  display: block;
+  position: absolute;
   mix-blend-mode: difference;
   background: inherit;
   background-clip: text;
@@ -93,8 +95,10 @@ textarea {
   z-index: 3;
 }
 #status_file_fill {
-  width: 100%;
-  top: -100%;
-  left: -212px; /* includes 4px left padding making parent span larger than 200 */
+  position: relative;
+  width: 0;
+  top: 0;
+  left: 0;
   background: blue;
+  padding: 0 !important;
 }

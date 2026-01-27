@@ -74,7 +74,7 @@ const fileTimedOut = function() {
   // @todo consolidate file and progress bar code.
   // receivingFile = null;
   // percent = 0;
-  // status_file_fill.style.left = '-212px';
+  status_file_fill.style.width = 0;
   sendfile.disabled = false;
 };
 
