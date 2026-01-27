@@ -8,10 +8,15 @@ var numUsers = 0;
 var pingsPerPong = 2;
 var pong = 0;
 
+var receivingFile;
+var percent = 0;
+
 window.onload = function() {
 
   var textscreen = document.getElementById('textscreen');
   var menubar = document.getElementById('menubar');
+  status_file_msg = document.getElementById('status_file_msg');
+  status_file_fill = document.getElementById('status_file_fill');
   menubar.clientWidth = textscreen.clientWidth;
   toggleConnection(false);
 
@@ -22,20 +27,20 @@ window.onload = function() {
 
     var fillBuffer = function() {
       if (received >= bufferSize) {
+        clearInterval(timeOut);
         initSocket();
       }
       else {
         textscreen.value += c;
         received++;
         updateXfer();
-        timeOut = setTimeout(fillBuffer, 115200 / baud_rate.value);
       }
     };
-    fillBuffer();
+    timeOut = setInterval(fillBuffer, 1000 / baud_rate.value / 8);
   }
 
   disconnect.onclick = function() {
-    clearTimeout(timeOut);
+    clearInterval(timeOut);
     socket.close();
   };
 
@@ -46,7 +51,7 @@ window.onload = function() {
   };
 
   textscreen.onkeydown = function(e) {
-    switch(e.key) {
+    switch(e.code) {
       case 'Backspace':
       case 'ArrowLeft':
         setCaretPosition(getCaret() - 1);
@@ -67,6 +72,21 @@ window.onload = function() {
       case 'Delete':
       case 'Insert':
         return false;
+      case 'KeyG':
+        if (e.ctrlKey) {
+          console.log('BEL');
+          // Prepare message.
+          var obj = new Object();
+          obj.letra = 0x07;
+          obj.caret = caret;
+          var message = JSON.stringify(obj);
+
+          // Send to websocket.
+          socket.send(message);
+          sent++;
+          updateXfer();
+          return false;
+        }
       default:
     }
   };
@@ -128,6 +148,12 @@ window.onload = function() {
 
   textscreen.onpaste = function(e) {
     var clipboardData = e.clipboardData || window.clipboardData;
+
+    // Check for file.
+    if (clipboardData.files) {
+      startFileTransfer(clipboardData.files);
+      return;
+    }
     pastedData = clipboardData.getData('Text');
 
     // Check for newlines.
@@ -160,6 +186,8 @@ function initSocket() {
     textscreen.disabled = false;
     textscreen.focus();
     setCaretPosition(0);
+    // Disable upload until connected.
+    sendfile.disabled = false;
   };
 
   socket.onclose = function() {
@@ -167,14 +195,59 @@ function initSocket() {
     toggleConnection(false);
     received = 0;
     sent = 0;
+    clearInterval(timeOut);
+    fileTimer = clearTimeout(fileTimer);
+    uploadingFile = null;
+    sendfile.disabled = true;
   };
 
   socket.onmessage = function(message) {
-    if (message.data == 'ping') {
+    if (message.data == 'ping' || message.data == 'pong') {
+      received++;
+      updateXfer();
       return;
     }
 
     var item = JSON.parse(message.data);
+
+    if (item.filename) {
+      sendfile.disabled = true;
+      clearTimeout(fileTimer);
+      fileTimer = setTimeout(fileTimedOut, fileTimeout);
+
+      // console.log(item.letra.toString(16));
+
+      // Detect file start.
+      if (item.letra == 'start') {
+        receivingFile = {
+          'filename': item.filename,
+          'body': new Uint8Array(item.caret),
+          'length': item.caret,
+        };
+        return;
+      }
+
+      // Append to string array and update progress.
+      if (receivingFile && receivingFile.length) {
+        receivingFile.body[item.caret] = item.letra;
+        percent = parseInt(item.caret) / parseInt(receivingFile.length) * 100;
+      }
+      received++;
+      updateXfer();
+
+      // Detect file end.
+      if (item.letra == 'done') {
+        console.log('Download completed.');
+        fileTimer = clearTimeout(fileTimer);
+        if (receivingFile) {
+          downloadFile(receivingFile.body, receivingFile.filename);
+        }
+        sendfile.disabled = false;
+        // @todo clear progress bar.
+        receivingFile = null;
+      }
+      return;
+    }
 
     if (item.numUsers) {
       if (numUsers != item.numUsers) {
@@ -199,7 +272,12 @@ function initSocket() {
     }
 
     if (item.letra) {
-      typeTextscreen(item.caret, item.letra);
+      if (item.letra == 0x07) {
+        bel.play();
+      }
+      else {
+        typeTextscreen(item.caret, item.letra);
+      }
     }
 
     received++;
@@ -286,20 +364,37 @@ function pasteTextscreen(pastedData, caret, typed) {
 }
 
 function updateXfer() {
-  status_xfer.innerText = "Received " + received + " / Sent " + sent;
+  status_xfer.innerText = "Received " + received.toLocaleString('en') + " / Sent " + sent.toLocaleString('en') ;
+
+  if (receivingFile && receivingFile.filename) {
+    let filename = receivingFile.filename.toLocaleUpperCase('en');
+    if (filename.length > 12) {
+      filename = filename.replace(' ', '');
+      filename = filename.slice(0, 6) + "~1" + filename.slice(filename.lastIndexOf('.'));
+    }
+    status_file_msg.innerHTML = filename + " " + percent.toFixed() + "%";
+    status_file_fill.style.width = percent + '%';
+  }
+  if (uploadingFile && uploadingFile.name) {
+    let filename = uploadingFile.name.toLocaleUpperCase('en');
+    if (filename.length > 12) {
+      filename = filename.replace(' ', '');
+      filename = filename.slice(0, 6) + "~1" + filename.slice(filename.lastIndexOf('.'));
+    }
+    status_file_msg.innerHTML = filename + " " + percent.toFixed() + "%";
+    status_file_fill.style.width = percent + '%';
+  }
 }
 
 function toggleConnection(conn) {
   if (conn) {
     status_conn.innerText = "Connecting...";
-    status_type.innerText = "Serial connection on " + com_port.toUpperCase();
     status_mesg.innerText = "Offline";
     received = 0;
     sent = 0;
   }
   else {
     status_conn.innerText = "Disconnected";
-    status_type.innerText = "Serial connection on " + com_port.toUpperCase();
     status_mesg.innerText = "Offline";
     textscreen.disabled = true;
     numUsers = 0;

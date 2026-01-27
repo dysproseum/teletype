@@ -6,6 +6,7 @@
 <link rel='stylesheet' media='only screen and (max-width: 768px)' href='mobile.css' type='text/css' />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0" />
 <script type="text/javascript" src="teletype.js"></script>
+<script type="text/javascript" src="upload.js"></script>
 <body>
   <div class="window">
     <h1>Teletype</h1>
@@ -19,4 +20,5 @@
       <?php include "com.inc.php"; ?>
     </div>
   </div>
+
 </body>

@@ -40,13 +40,19 @@
         </select>
       <input type="button" id="disconnect" value="Disconnect" disabled="disabled" />
       <input type="button" id="connect" value="Connect" />
+      <input type="button" id="sendfile" value="Send File" disabled="disabled" />
+      <input type="file" id="filedrop" name="file" />
     </form>
   </div>
   <textarea name="screen" id="textscreen" spellcheck="false" cols="80" rows="25" disabled="disabled"></textarea>
   <div id="statusbar">
     <span id="status_conn"></span>
-    <span id="status_type"></span>
     <span id="status_mesg"></span>
+    <span id="status_file">
+      <span id="status_file_msg"></span>
+      <span id="status_file_fill"></span>
+    </span>
     <span id="status_xfer"></span>
+    <audio id="bel" src="assets/bell.mp3" hidden></audio>
   </div>
 </div>
